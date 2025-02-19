@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #e8ecef;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+html, body, #root, main {
+  height: 100%;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.fc-button-group {
+  @apply !space-x-1;
+}
+
+.fc-prev-button, .fc-next-button, .fc-today-button {
+  @apply text-sm !bg-blue-500 text-white !py-1 !px-4 !rounded-sm hover:!bg-blue-600 !border-none !shadow-none;
+}
+
+.fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button, .fc-listWeek-button {
+  @apply text-sm !bg-blue-500 text-white !py-1 !px-4 !rounded-sm hover:!bg-blue-600 !border-none !shadow-none;
+}
+
+.fc-button-active {
+  @apply !bg-blue-300;
+}
+
+.fc-toolbar-title {
+  @apply !text-xl text-gray-700;
+}
+
+.fc-event-title {
+  @apply text-sm font-medium text-white;
+}
+
+.fc-event {
+  @apply bg-blue-500 hover:bg-blue-600 rounded-sm p-1;
+}
+
+.fc-daygrid-day {
+  @apply border !border-gray-200;
+}
+
+.fc-col-header-cell {
+  @apply text-gray-600 !border-gray-200
+}
+
+.fc-scrollgrid {
+  @apply border !border-gray-200;
+}
+
+.fc-daygrid-day-frame {
+  @apply !h-10;
+}
+
+.fc-day-today {
+  @apply !bg-blue-100 !text-blue-700 !font-bold;
+}
