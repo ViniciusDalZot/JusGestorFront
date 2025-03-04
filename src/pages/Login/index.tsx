@@ -31,7 +31,7 @@ const Login = () => {
 
     const handleSubmit = async (values: IFormValues) => {
         try {
-            const response: any = await api.post('/auth/login', { username: values.username, password: values.password });
+            const response: any = await api.post('/auth/login', { email: values.username, password: values.password });
             if (response.data.token) {
                 localStorage.setItem('authToken', response.data.token);
                 

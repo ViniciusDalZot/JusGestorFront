@@ -1,62 +1,78 @@
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import ptBr from '@fullcalendar/core/locales/pt-br'
-import { useState } from 'react'
+import { EventContentArg } from '@fullcalendar/core'
+import { NotificationData } from '~/types' // Importe sua interface de notificação
 
-interface IEvent {
-  id: string
-  title: string
-  start: string
-  category: "none"
+
+interface CalendarProps {
+  notifications: NotificationData[]
+  onDateClick: (date: Date) => void
+  onTodayClick?: () => void
 }
 
-interface ICalendar {
-  events: IEvent[]
-}
+export const Calendar = ({ notifications, onDateClick, onTodayClick }: CalendarProps) => {
+  const transformNotificationsToEvents = () => {
+    return notifications.map(notification => ({
+      id: notification.id,
+      title: `Intimações: ${notification.destinatarios?.length || 0}`,
+      start: notification.data_disponibilizacao,
+      allDay: true,
+      backgroundColor: notification.lida ? '#34D399' : '#F87171',
+      borderColor: 'transparent',
+      extendedProps: {
+        notification
+      }
+    }))
+  }
 
-export const Calendar = ({ events }: ICalendar) => {
-/*   const handleDateClick = (info) => {
-    const title = prompt('Digite o nome do evento:')
-    if (title) {
-      setEvents([
-        ...events,
-        { 
-          id: String(events.length + 1), 
-          title, 
-          start: info.dateStr, 
-          backgroundColor: 'green', 
-          borderColor: 'green' 
-        },
-      ])
-    }
-  } */
+  const handleDateClick = (arg: any) => {
+    onDateClick(arg.date)
+  }
+
+  const customEventContent = (eventInfo: EventContentArg) => {
+    return (
+      <div className="flex flex-col items-center p-1">
+        <div className="text-center text-xs font-medium">
+          {eventInfo.event.title}
+        </div>
+        <div className="flex gap-1 mt-1">
+          {!eventInfo.event.backgroundColor && (
+            <div className="w-2 h-2 rounded-full bg-red-500" />
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <FullCalendar
-      locale={ptBr}
-      height="700px"
-      headerToolbar={{
-        left: 'prev,today,next',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
-      }}
-      buttonText={{
-        today: 'Hoje',
-        month: 'Mês',
-        week: 'Semana',
-        day: 'Dia',
-        list: 'Lista'
-      }}
-      plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-      initialView="dayGridMonth"
-      events={events}
-      editable={true}
-      selectable={true}
-      selectMirror={true}
-      // dateClick={handleDateClick}
-    />
+    <div className="p-4 bg-white rounded-lg shadow">
+      <FullCalendar
+        locale={ptBr}
+        height="auto"
+        headerToolbar={{
+          left: 'prev,today,next',
+          center: 'title',
+          right: 'dayGridMonth'
+        }}
+        buttonText={{
+          today: 'Hoje',
+          month: 'Mês'
+        }}
+        plugins={[dayGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        events={transformNotificationsToEvents()}
+        dateClick={handleDateClick}
+        eventContent={customEventContent}
+        datesSet={(arg) => {
+          if(onTodayClick && arg.view.type === 'dayGridMonth') {
+            onTodayClick()
+          }
+        }}
+        dayCellClassNames="hover:bg-gray-50 cursor-pointer"
+        eventClassNames="cursor-pointer"
+      />
+    </div>
   )
 }
