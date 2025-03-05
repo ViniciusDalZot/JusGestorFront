@@ -1,199 +1,159 @@
 import { useEffect, useState } from 'react';
-import Modal from 'react-modal';
-import api from '~/services/api';
-import { DataTable } from '~/components';
-import { Spinner } from '~/components/Spinner';
-import ProcessModal from './ProcessModal';
-import { toDDMMYYYY } from '~/utils/functions';
 import { toast } from 'react-toastify';
-import parse from 'html-react-parser';
+import api from '~/services/api';
+import { DataTable } from '~/components/DataTable';
+import { Spinner } from '~/components/Spinner';
+import { Modal } from '~/components/Modal'; // Exemplo
+import ProcessModal from './ProcessModal';
+import { FilterField } from '~/components/FilterField';
+import { PlusIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { Processo } from '~/types/Processos';
 
-Modal.setAppElement('#root');
-
-const FilterField = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="flex flex-col gap-1 flex-1">
-    <label className="text-sm font-medium text-gray-700">{label}</label>
-    {children}
-  </div>
-);
-
-interface Case {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
+function formatDate(dateString?: string) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('pt-BR');
 }
 
-const Cases = () => {
-  const [cases, setCases] = useState<Case[]>([]);
+
+
+export default function Cases() {
+  const [processos, setProcessos] = useState<Processo[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [currentCase, setCurrentCase] = useState<Case | null>(null);
+  const [currentProcesso, setCurrentProcesso] = useState<Processo | null>(null);
+
   const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+
   const [filters, setFilters] = useState({
-    title: '',
+    numero: '',
     status: '',
   });
 
-  const fetchCases = async () => {
+  async function fetchProcessos() {
     setLoading(true);
     try {
-      const response = await api.get('/cases', {
+      const response = await api.get('/processos', {
         params: {
-          title: filters.title || undefined,
+          numero: filters.numero || undefined,
           status: filters.status || undefined,
         },
       });
-      setCases(response.data);
+      setProcessos(response.data);
     } catch (error) {
-      console.error('Error fetching cases:', error);
-      toast.error('Erro ao carregar os casos. Tente novamente.');
+      toast.error('Erro ao carregar processos.');
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
-    fetchCases();
+    fetchProcessos();
   }, []);
 
-  const handleOpenModal = (caseItem: Case | null = null) => {
-    setCurrentCase(caseItem);
+  function handleOpenModal(proc: Processo | null = null) {
+    setCurrentProcesso(proc);
     setModalIsOpen(true);
-  };
+  }
 
-  const handleCloseModal = () => {
+  function handleCloseModal() {
     setModalIsOpen(false);
-    setCurrentCase(null);
-  };
+    setCurrentProcesso(null);
+  }
 
-  const handleOpenDeleteModal = (caseItem: Case) => {
-    setCurrentCase(caseItem);
+  function handleOpenDeleteModal(proc: Processo) {
+    setCurrentProcesso(proc);
     setDeleteModalIsOpen(true);
-  };
+  }
 
-  const handleCloseDeleteModal = () => {
+  function handleCloseDeleteModal() {
     setDeleteModalIsOpen(false);
-    setCurrentCase(null);
-  };
+    setCurrentProcesso(null);
+  }
 
-  const handleSaveCase = async (caseData: Omit<Case, 'id' | 'createdAt' | 'updatedAt'>) => {
+  async function handleSaveProcesso(data: Omit<Processo, 'id' | 'criadoEm'>) {
     try {
-      if (currentCase) {
-        // Update existing case
-        await api.put(`/cases/${currentCase.id}`, caseData);
-        toast.success('Caso atualizado com sucesso!');
+      if (currentProcesso) {
+        // editar
+        await api.put(`/processos/${currentProcesso.id}`, data);
+        toast.success('Processo atualizado com sucesso!');
       } else {
-        // Create new case
-        await api.post('/cases', caseData);
-        toast.success('Caso criado com sucesso!');
+        // criar
+        await api.post('/processos', data);
+        toast.success('Processo criado com sucesso!');
       }
       handleCloseModal();
-      fetchCases();
+      fetchProcessos();
     } catch (error) {
-      console.error('Error saving case:', error);
-      toast.error('Erro ao salvar o caso. Tente novamente.');
+      toast.error('Não foi possível salvar o processo.');
     }
-  };
+  }
 
-  const handleDeleteCase = async () => {
-    if (!currentCase) return;
-    
+  async function handleDeleteProcesso() {
+    if (!currentProcesso) return;
     try {
-      await api.delete(`/cases/${currentCase.id}`);
-      toast.success('Caso removido com sucesso!');
+      await api.delete(`/processos/${currentProcesso.id}`);
+      toast.success('Processo removido com sucesso!');
       handleCloseDeleteModal();
-      fetchCases();
+      fetchProcessos();
     } catch (error) {
-      console.error('Error deleting case:', error);
-      toast.error('Erro ao remover o caso. Tente novamente.');
+      toast.error('Não foi possível remover o processo.');
     }
-  };
+  }
 
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
+  function handleFilterChange(key: string, value: string) {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  }
 
-  const applyFilters = () => {
-    fetchCases();
-  };
+  function applyFilters() {
+    fetchProcessos();
+  }
 
-  const resetFilters = () => {
-    setFilters({
-      title: '',
-      status: '',
-    });
-    fetchCases();
-  };
+  function resetFilters() {
+    setFilters({ numero: '', status: '' });
+    fetchProcessos();
+  }
 
   const columns = [
+    { name: 'numero', label: 'Número' },
+    { name: 'status', label: 'Status' },
     {
-      header: 'Título',
-      accessor: 'title',
-    },
-    {
-      header: 'Descrição',
-      accessor: 'description',
-    },
-    {
-      header: 'Status',
-      accessor: 'status',
-    },
-    {
-      header: 'Data de Criação',
-      accessor: 'createdAt',
-      cell: (row: Case) => toDDMMYYYY(row.createdAt),
-    },
-    {
-      header: 'Ações',
-      cell: (row: Case) => (
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleOpenModal(row)}
-            className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800"
-          >
-            Editar
-          </button>
-          <button
-            onClick={() => handleOpenDeleteModal(row)}
-            className="px-3 py-1 text-sm text-red-600 hover:text-red-800"
-          >
-            Excluir
-          </button>
-        </div>
-      ),
+      name: 'criadoEm',
+      label: 'Data de Criação',
+      render: (value: string) => formatDate(value),
     },
   ];
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="w-full p-4">
+      {/* Título + Botão Criar */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Casos</h1>
         <button
-          onClick={() => handleOpenModal()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => handleOpenModal(null)}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center gap-2"
         >
+          <PlusIcon className="w-5 h-5" />
           Novo Caso
         </button>
       </div>
 
+      {/* Filtros */}
       <div className="bg-white p-4 rounded shadow mb-6">
         <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-        <div className="flex gap-4 mb-4">
-          <FilterField label="Título">
+        <div className="flex flex-wrap gap-4 mb-4">
+          <FilterField label="Título / Número">
             <input
               type="text"
-              value={filters.title}
-              onChange={(e) => handleFilterChange('title', e.target.value)}
+              value={filters.numero}
+              onChange={(e) => handleFilterChange('numero', e.target.value)}
               className="border rounded p-2 w-full"
-              placeholder="Filtrar por título"
+              placeholder="Filtrar por número"
             />
           </FilterField>
+
           <FilterField label="Status">
             <select
               value={filters.status}
@@ -201,13 +161,13 @@ const Cases = () => {
               className="border rounded p-2 w-full"
             >
               <option value="">Todos</option>
-              <option value="aberto">Aberto</option>
-              <option value="em_andamento">Em Andamento</option>
-              <option value="concluido">Concluído</option>
-              <option value="cancelado">Cancelado</option>
+              <option value="Em andamento">Em andamento</option>
+              <option value="Concluído">Concluído</option>
+              <option value="Cancelado">Cancelado</option>
             </select>
           </FilterField>
         </div>
+
         <div className="flex gap-2">
           <button
             onClick={applyFilters}
@@ -224,43 +184,46 @@ const Cases = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spinner />
-        </div>
-      ) : (
-        <DataTable
-          data={cases}
-          columns={columns}
-          emptyMessage="Nenhum caso encontrado"
-        />
-      )}
+      {/* Tabela */}
+      <div className="bg-white rounded shadow w-full overflow-hidden">
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <Spinner />
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={processos}
+            onEdit={(_, row) => handleOpenModal(row)}
+            onDelete={(_, row) => handleOpenDeleteModal(row)}
+          />
+        )}
+      </div>
 
-      {/* Create/Edit Modal */}
+      {/* Modal de Criar/Editar (usando CustomModal) */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={handleCloseModal}
-        className="bg-white rounded-lg p-6 max-w-2xl mx-auto mt-20"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center"
+  className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg outline-none mx-auto"
       >
         <ProcessModal
           onClose={handleCloseModal}
-          onSave={handleSaveCase}
-          caseData={currentCase}
+          onSave={handleSaveProcesso}
+          processoData={currentProcesso}
         />
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+      {/* Modal de Exclusão (usando CustomModal) */}
       <Modal
         isOpen={deleteModalIsOpen}
         onRequestClose={handleCloseDeleteModal}
-        className="bg-white rounded-lg p-6 max-w-md mx-auto mt-20"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex"
       >
         <div>
           <h2 className="text-xl font-bold mb-4">Confirmar Exclusão</h2>
           <p className="mb-6">
-            Tem certeza que deseja excluir o caso "{currentCase?.title}"? Esta ação não pode ser desfeita.
+            Tem certeza que deseja excluir o processo nº “{currentProcesso?.numero}”? 
+            Esta ação não pode ser desfeita.
           </p>
           <div className="flex justify-end gap-2">
             <button
@@ -270,9 +233,10 @@ const Cases = () => {
               Cancelar
             </button>
             <button
-              onClick={handleDeleteCase}
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              onClick={handleDeleteProcesso}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 inline-flex items-center gap-1"
             >
+              <ExclamationTriangleIcon className="w-5 h-5" />
               Excluir
             </button>
           </div>
@@ -280,6 +244,4 @@ const Cases = () => {
       </Modal>
     </div>
   );
-};
-
-export default Cases;
+}
