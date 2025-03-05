@@ -11,7 +11,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: #e8ecef;
 }
+/* Garante que todos os elementos usem border-box */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
+/* Remove scrolls indesejados */
+html {
+  overflow: hidden;
+}
+
+/* Camada base para o app */
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -72,3 +88,55 @@ html, body, #root, main {
 .fc-day-today {
   @apply !bg-blue-100 !text-blue-700 !font-bold;
 }
+/* Adicione estas classes */
+.notification-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.calendar-container {
+  min-width: 350px;
+  height: fit-content;
+}
+
+.notification-card {
+  transition: all 0.2s ease;
+  border-left-width: 4px;
+}
+
+.notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.date-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  padding: 1rem 0;
+}
+/* No seu arquivo global de CSS */
+.fc .fc-daygrid-day-frame {
+  min-height: 80px !important;
+}
+
+.event-point {
+  cursor: pointer;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 2px 4px;
+  margin: 2px;
+}
+
+.fc .fc-daygrid-day:hover {
+  background-color: #f8fafc;
+}
+

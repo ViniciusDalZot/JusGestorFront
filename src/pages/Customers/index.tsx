@@ -9,7 +9,7 @@ const Customers = () => {
     useEffect(() => {
         const fetchClients = async () => {
             try {
-                const response = await api.get('/view-clients');
+                const response = await api.get('/clientes');
                 setClients(response.data);
             } catch (error) {
                 console.error('Erro ao buscar clientes:', error);
@@ -41,11 +41,11 @@ const Customers = () => {
                     },
                     {
                         label: "CPF/CNPJ",
-                        name: "cpf_cnpj"
+                        name: "cpfCnpj"
                     },
                     {
                         label: "Inserido em",
-                        name: "data_criacao",
+                        name: "criadoEm",
                         render: (data) => <div>{toDDMMYYYY(data)}</div>
                     },
                 ]

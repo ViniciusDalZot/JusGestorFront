@@ -7,19 +7,30 @@ interface IModal {
   children: ReactNode
   footer?: ReactNode
   width?: string
+  maxHeight?: string
 }
 
-export const Modal = ({ isOpen, onClose, title, children, footer, width = "w-[1000px]" }: IModal) => {
+export const Modal = ({ 
+  isOpen, 
+  onClose, 
+  title, 
+  children, 
+  footer, 
+  width = "w-[800px]", 
+  maxHeight = "calc(100vh - 10rem)"
+}: IModal) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className={`relative ${width} bg-white rounded-sm shadow-lg p-4 grid gap-4`} style={{ "maxHeight": "calc(100% - 10rem)" }}>
-
+      <div 
+        className={`relative ${width} bg-white rounded-lg shadow-xl p-6 grid gap-4`}
+        style={{ maxHeight }}
+      >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg text-gray-600">{title}</h2>
+          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
           <button
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 transition-colors"
             onClick={onClose}
             aria-label="Close Modal"
           >
@@ -31,18 +42,14 @@ export const Modal = ({ isOpen, onClose, title, children, footer, width = "w-[10
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="overflow-auto">{children}</div>
+        <div className="overflow-y-auto flex-1">{children}</div>
 
-        <div>{footer}</div>
+        {footer && <div className="border-t pt-4">{footer}</div>}
       </div>
     </div>
   );

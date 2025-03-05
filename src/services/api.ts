@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://191.252.205.168:5001/api',
+    baseURL: 'http://localhost:3000',
 });
 
 api.interceptors.request.use(config => {
@@ -15,6 +15,7 @@ api.interceptors.request.use(config => {
 });
 
 export default api;
+
 
 /* export const login = async (username, password) => {
     const response = await api.post('/auth/login', { username, password });
